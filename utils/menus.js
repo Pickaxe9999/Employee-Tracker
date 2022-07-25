@@ -1,7 +1,11 @@
 const inquirer = require('inquirer');
+const db = require('../db/connection');
+const cTable = require('console.table');
 
-const mainMenu =  function(){
-    return inquirer.prompt({
+
+
+const mainMenu =  async function(){
+    const { option } = await inquirer.prompt({
         type: 'list',
         message: 'What would you like to do?',
         name: 'option',
@@ -15,30 +19,35 @@ const mainMenu =  function(){
             'Add Department',
             'Quit'
         ]
-    }).then(({option}) => {
-        if(option === 'View All Employees'){
-            viewAllEmployees();
-        }else if(option === 'Add Employee'){
-            addEmployee();
-        }else if(option === 'Update Employee Role'){
-            updateEmployeeRole();
-        }else if(option === 'View All Roles'){
-            viewAllRoles();
-        }else if(option === 'Add Role'){
-            addRole();
-        }else if(option === 'View All Departments'){
-            viewAllDepartments();
-        }else  if(option === 'Add Department'){
-            addDepartment();
-        }else  if(option === 'Quit'){
-            return;
-        } 
-    })
+    });
+    if (option === 'View All Employees') {
+        viewAllEmployees();
+    } else if (option === 'Add Employee') {
+        addEmployee();
+    } else if (option === 'Update Employee Role') {
+        updateEmployeeRole();
+    } else if (option === 'View All Roles') {
+        viewAllRoles();
+    } else if (option === 'Add Role') {
+        addRole();
+    } else if (option === 'View All Departments') {
+        viewAllDepartments();
+    } else if (option === 'Add Department') {
+        addDepartment();
+    } else if (option === 'Quit') {
+        return;
+    }
 }
 
+//employee queries
 const viewAllEmployees = function(){
-    console.log('all employee view menu');
-    return mainMenu();
+    const sql = `SELECT * FROM employees`;
+    db.promise().query(sql)
+    .then(rows => {
+        rows = rows[0];
+        console.table(rows);
+        mainMenu();
+    })
 }
 
 const addEmployee = function(){
@@ -51,9 +60,17 @@ const updateEmployeeRole = function(){
     return mainMenu();
 }
 
+
+
+//Role queries
 const viewAllRoles = function(){
-    console.log('all Roles view menu');
-    return mainMenu();
+    const sql = `SELECT * FROM roles`;
+    db.promise().query(sql)
+    .then(rows => {
+        rows = rows[0];
+        console.table(rows);
+        mainMenu();
+    })
 }
 
 const addRole = function(){
@@ -61,9 +78,18 @@ const addRole = function(){
     return mainMenu();
 }
 
+
+
+
+//Department Queries
 const viewAllDepartments = function(){
-    console.log('view all departments menu');
-    return mainMenu();
+    const sql = `SELECT * FROM department`;
+    db.promise().query(sql)
+    .then(rows => {
+        rows = rows[0];
+        console.table(rows);
+        mainMenu();
+    })
 }
 
 const addDepartment = function(){

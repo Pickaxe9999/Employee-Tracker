@@ -42,35 +42,40 @@ const mainMenu =  async function(){
 //user menu for adding a new employee
 const promptForEmployee = async function(){
     //query the current information for all departments
-    const departmentSQL = `SELECT name, id FROM department`;
-    const departments = await db.promise().query(departmentSQL).then(rows => {
+    const rolesSql = `SELECT title, id FROM roles`;
+    const roles = await db.promise().query(rolesSql).then(rows => {
         rows = rows[0];
         return rows;
     });
+
+    //create a displayable table for inquirer for roles
+    let displayRoles = [];
+    for (let i = 0; i < roles.length; i++) {
+        displayRoles.push(roles[i].title);
+    }
+    console.log(displayRoles);
 
     //query the current information for all managers
     const managerSQL = `SELECT first_name, last_name, id FROM employees WHERE manager_id IS NULL`;
     const managers = await db.promise().query(managerSQL).then(rows => {
         rows = rows[0];
+        rows = rows.map(({first_name, last_name, id}) => ({
+            name: first_name + ' ' + last_name,
+            value: id
+        }))
+        rows.push({name: 'No Manager', value: null});
         return rows;
     });
 
-
-    //join the manager first and last names together into one string per index
+    //create a displayable table for inquirer for managers
     let displayManagers = [];
     for (let i = 0; i < managers.length; i++) {
-        displayManagers.push(managers[i].first_name + ' ' + managers[i].last_name);
+        displayManagers.push(managers[i].name);
     }
-    displayManagers.push('No Manager');
-
-
-    console.log(managers);
-    console.log(displayManagers);
-
 
 
     //Ask for the new employees information
-    let employee = await inquirer.prompt([
+    const employee = await inquirer.prompt([
         {
             type: 'input',
             name: 'first_name',
@@ -99,19 +104,33 @@ const promptForEmployee = async function(){
         },
         {
             type: 'rawlist',
-            message: 'What department is this employee in?',
-            name: 'department_id',
-            choices: departments
+            message: 'What role does this employee have?',
+            name: 'role_id',
+            choices: displayRoles
         },
         {
-            type: 'list',
+            type: 'rawlist',
             message: 'What manager does this employee have?',
             name: 'manager_id',
-            choices: managers
+            choices: displayManagers
         }
     ])
 
-    console.log(employee);
+    //change the employee.manager_id to reflect the id of the manager and not the name
+    managers.map(manager => {
+        if(manager.name === employee.manager_id){
+            employee.manager_id = manager.value;
+        }
+    })
+
+    //change the employee.department_id to reflect the id of the department and not the name
+    roles.map(role => {
+        if(role.title === employee.role_id){
+            employee.role_id = role.id;
+        }
+    })
+
+    return employee;
 }
 
 
@@ -122,13 +141,18 @@ const viewAllEmployees = function(){
     .then(rows => {
         rows = rows[0];
         console.table(rows);
-        mainMenu();
+        return mainMenu();
     })
 }
 
-const addEmployee = function(){
+const addEmployee = async function(){
     sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
-    promptForEmployee();
+    const employee = await promptForEmployee();
+    const params = [employee.first_name, employee.last_name, employee.role_id, employee.manager_id];
+
+    db.promise().query(sql, params).then(() => {
+        mainMenu();
+    })
 }
 
 const updateEmployeeRole = function(){

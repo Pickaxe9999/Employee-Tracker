@@ -3,7 +3,7 @@ const db = require('../db/connection');
 const cTable = require('console.table');
 
 
-//main menu of the application
+//menus for interacting with the user
 const mainMenu =  async function(){
     const { option } = await inquirer.prompt({
         type: 'list',
@@ -39,7 +39,6 @@ const mainMenu =  async function(){
     }
 }
 
-//user menu for adding a new employee
 const promptForEmployee = async function(){
     //query the current information for all departments
     const rolesSql = `SELECT title, id FROM roles`;
@@ -133,6 +132,67 @@ const promptForEmployee = async function(){
     return employee;
 }
 
+const promptForRole = async function(){
+
+    const departmentSql = `SELECT * FROM department`;
+    const departments = await db.promise().query(departmentSql).then(rows => {
+        rows = rows[0];
+        return rows;
+    });
+
+    //create a displayable table for inquirer for roles
+    let displayDepartments = [];
+    for (let i = 0; i < departments.length; i++) {
+        displayDepartments.push(departments[i].name);
+    }
+
+
+    const role = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'title',
+            message: "What is the name for this new title?",
+            validate: name => {
+                if (name){
+                    return true;
+                } else {
+                    console.log("Please enter a name for the new role!");
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: "What is the gross salary for this new role?",
+            validate: salary => {
+                if (!isNaN(salary)){
+                    return true;
+                } else {
+                    console.log("Please enter a number for this new role's salary!");
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'rawlist',
+            message: 'What department does this role belong to?',
+            name: 'department_id',
+            choices: displayDepartments
+        }
+    ])
+
+    departments.map(departments => {
+        if(departments.name === role.department_id){
+            role.department_id = departments.id;
+        }
+    })
+
+    role.salary = parseInt(role.salary);
+
+    return role;
+}
+
 
 //employee queries & functions
 const viewAllEmployees = function(){
@@ -173,9 +233,14 @@ const viewAllRoles = function(){
     })
 }
 
-const addRole = function(){
-    console.log('add role menu');
-    return mainMenu();
+const addRole = async function(){
+    sql = `INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)`;
+    const role = await promptForRole();
+    const params = [role.title, role.salary, role.department_id];
+
+    db.promise().query(sql, params).then(() => {
+        mainMenu();
+    })
 }
 
 
@@ -192,9 +257,8 @@ const viewAllDepartments = function(){
     })
 }
 
-const addDepartment = function(){
-    console.log('add department menu');
-    return mainMenu();
+const addDepartment = async function(){
+    mainMenu();
 }
 
 module.exports = {mainMenu}

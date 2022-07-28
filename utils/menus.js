@@ -167,7 +167,9 @@ const promptForRole = async function(){
             message: "What is the gross salary for this new role?",
             validate: salary => {
                 if (!isNaN(salary)){
-                    return true;
+                    if(parseInt(salary)/1000000 < 1){
+                        return true;
+                    }
                 } else {
                     console.log("Please enter a number for this new role's salary!");
                     return false;
@@ -193,6 +195,26 @@ const promptForRole = async function(){
     return role;
 }
 
+const promptForDepartment = async function(){
+
+    const department = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'name',
+            message: "What is the name for this new department?",
+            validate: name => {
+                if (name){
+                    return true;
+                } else {
+                    console.log("Please enter a name for the new role!");
+                    return false;
+                }
+            }
+        }
+    ])
+
+    return department;
+}
 
 //employee queries & functions
 const viewAllEmployees = function(){
@@ -258,7 +280,13 @@ const viewAllDepartments = function(){
 }
 
 const addDepartment = async function(){
-    mainMenu();
+    sql = `INSERT INTO department (name) VALUES (?)`;
+    const department = await promptForDepartment();
+    const params = [department.name];
+
+    db.promise().query(sql, params).then(() => {
+        mainMenu();
+    })
 }
 
 module.exports = {mainMenu}

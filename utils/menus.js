@@ -216,6 +216,76 @@ const promptForDepartment = async function(){
     return department;
 }
 
+const promptForEmployeeUpdate = async function(){
+    const employeeSql = `SELECT * FROM employees`;
+    const employees = await db.promise().query(employeeSql).then(rows => {
+        rows = rows[0];
+        rows = rows.map(employee => {
+            const employeeData = {
+                id: employee.id,
+                name: employee.first_name + ' ' + employee.last_name
+            }
+            return employeeData;
+        })
+        return rows;
+    });
+
+    const rolesSql = `SELECT * FROM roles`;
+    const roles = await db.promise().query(rolesSql).then(rows => {
+        rows = rows[0];
+        rows = rows.map(role => {
+            const roleData = {
+                id: role.id,
+                title: role.title
+            }
+            return roleData;
+        })
+        return rows;
+    })
+
+    const employeeDisplay = employees.map(employee => {
+        const name = employee.name;
+        return name;
+    })
+
+    const roleDisplay = roles.map(role => {
+        const roleName = role.title;
+        return roleName;
+    })
+
+
+    let updatedEmployee = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'name',
+            message: "Which employee would you like to update the role for?",
+            choices: employeeDisplay
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: "What role do you want to update them to?",
+            choices: roleDisplay
+        }
+    ])
+
+    employees.map(employee => {
+        if(employee.name === updatedEmployee.name){
+            updatedEmployee.name = employee.id
+        }
+    })
+
+    roles.map(role => {
+        if(role.title === updatedEmployee.role){
+            updatedEmployee.role = role.id
+        }
+    })
+
+    return updatedEmployee;
+}
+
+
+
 //employee queries & functions
 const viewAllEmployees = function(){
     const sql = `SELECT * FROM employees`;
@@ -237,8 +307,17 @@ const addEmployee = async function(){
     })
 }
 
-const updateEmployeeRole = function(){
-    console.log('update employee menu');
+const updateEmployeeRole = async function(){
+    const updatedEmployee = await promptForEmployeeUpdate();
+
+    console.log(updatedEmployee);
+
+    const updateSql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+    await db.promise().query(updateSql,[updatedEmployee.role, updatedEmployee.name]).then(results => {
+        console.log(results);
+    })
+
+
     return mainMenu();
 }
 

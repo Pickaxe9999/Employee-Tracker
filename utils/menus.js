@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const db = require('../db/connection');
 const cTable = require('console.table');
-
+console.log
 
 //menus for interacting with the user
 const mainMenu =  async function(){
@@ -53,7 +53,6 @@ const promptForEmployee = async function(){
     for (let i = 0; i < roles.length; i++) {
         displayRoles.push(roles[i].title);
     }
-    console.log(displayRoles);
 
     //query the current information for all managers
     const managerSQL = `SELECT first_name, last_name, id FROM employees WHERE manager_id IS NULL`;
@@ -310,9 +309,7 @@ const addEmployee = async function(){
 
 const updateEmployeeRole = async function(){
     const updatedEmployee = await promptForEmployeeUpdate();
-
-    console.log(updatedEmployee);
-
+    
     const updateSql = `UPDATE employees SET role_id = ? WHERE id = ?`;
     await db.promise().query(updateSql,[updatedEmployee.role, updatedEmployee.name]).then(results => {
         console.log(results);

@@ -1,6 +1,7 @@
 # Employee Tracker
 
 ![image](https://user-images.githubusercontent.com/103781767/182051366-6dc49042-bfe9-478e-8743-5602f0b5ef23.png)
+video walkthrough - https://drive.google.com/file/d/1d-s2DUy03DE7ter3yrhWlvmUVhDNNUPe/view
 
 
 ## Table of contents

@@ -39,6 +39,7 @@ const mainMenu =  async function(){
     }
 }
 
+//menus for main menu choices
 const promptForEmployee = async function(){
     //query the current information for all departments
     const rolesSql = `SELECT title, id FROM roles`;
